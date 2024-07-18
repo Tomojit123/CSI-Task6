@@ -1,0 +1,87 @@
+1.To solve the problem of finding the daily active user count for the last 30 days ending 2019-07-27 inclusively, we can use the following SQL query:
+
+
+
+SELECT
+    activity_date AS day,
+    COUNT(DISTINCT user_id) AS active_users
+FROM
+    Activity
+WHERE
+    activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+GROUP BY
+    activity_date;
+
+
+2.To find managers with at least five direct reports, we can use the following SQL query:
+
+
+
+
+
+SELECT
+    E1.name
+FROM
+    Employee E1
+JOIN
+    Employee E2 ON E1.id = E2.managerId
+GROUP BY
+    E1.id, E1.name
+HAVING
+    COUNT(E2.id) >= 5;
+
+
+
+
+
+3.Calculate the processing time for each (machine_id, process_id) by subtracting the 'start' timestamp from the 'end' timestamp.
+Compute the average processing time for each machine
+
+
+
+
+
+WITH ProcessTimes AS (
+    SELECT
+        machine_id,
+        process_id,
+        MAX(CASE WHEN activity_type = 'end' THEN timestamp ELSE NULL END) -
+        MAX(CASE WHEN activity_type = 'start' THEN timestamp ELSE NULL END) AS processing_time
+    FROM
+        Activity
+    GROUP BY
+        machine_id,
+        process_id
+),
+MachineAverages AS (
+    SELECT
+        machine_id,
+        AVG(processing_time) AS avg_processing_time
+    FROM
+        ProcessTimes
+    GROUP BY
+        machine_id
+)
+SELECT
+    machine_id,
+    ROUND(avg_processing_time, 3) AS processing_time
+FROM
+    MachineAverages;
+
+4.To find all dates' IDs with higher temperatures compared to the previous day, we can use a self-join on the Weather table. The idea is to join the table with itself on the condition that the recordDate of one row is one day after the recordDate of another row. Then, we compare the temperatures of these matched rows.
+
+
+
+
+
+SELECT
+    w1.id
+FROM
+    Weather w1
+JOIN
+    Weather w2 ON w1.recordDate = DATE_ADD(w2.recordDate, INTERVAL 1 DAY)
+WHERE
+    w1.temperature > w2.temperature;
+
+
+
